@@ -21,7 +21,6 @@
 
 #include "grbl.h"
 
-
 #define RX_RING_BUFFER (RX_BUFFER_SIZE+1)
 #define TX_RING_BUFFER (TX_BUFFER_SIZE+1)
 
@@ -71,14 +70,14 @@ void serial_init()
     UCSR0A &= ~(1 << U2X0); // baud doubler off  - Only needed on Uno XXX
   #else
     uint16_t UBRR0_value = ((F_CPU / (4L * BAUD_RATE)) - 1)/2;
-    UCSR0A |= (1 << U2X0);  // baud doubler on for high baud rates, i.e. 115200 
+    UCSR0A |= (1 << U2X0);  // baud doubler on for high baud rates, i.e. 115200
   #endif
   UBRR0H = UBRR0_value >> 8;
   UBRR0L = UBRR0_value;
 
   // enable rx, tx, and interrupt on complete reception of a byte
-  UCSR0B |= (1<<RXEN0 | 1<<TXEN0 | 1<<RXCIE0);  
-  
+  UCSR0B |= (1<<RXEN0 | 1<<TXEN0 | 1<<RXCIE0);
+
   // defaults to 8-bit, no parity, 1 stop bit
 }
 
@@ -101,11 +100,6 @@ void serial_write(uint8_t data) {
 
   // Enable Data Register Empty Interrupt to make sure tx-streaming is running
   UCSR0B |=  (1 << UDRIE0);
-
-
-  
-  
-  
 }
 
 
@@ -149,8 +143,6 @@ uint8_t serial_read()
 ISR(SERIAL_RX)
 {
   uint8_t data = UDR0;
-  
-  
   uint8_t next_head;
 
   // Pick off realtime command characters directly from the serial stream. These characters are

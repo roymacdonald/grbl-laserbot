@@ -252,11 +252,15 @@ void st_wake_up()
   
   // Enable stepper drivers.
   #ifdef DEFAULTS_RAMPS_BOARD
-    
+    if (bit_istrue(settings.flags,BITFLAG_INVERT_ST_ENABLE)) {
+      STEPPER_ENABLE_PORT(0) |= (1 << STEPPER_ENABLE_BIT(0));
+      STEPPER_ENABLE_PORT(1) |= (1 << STEPPER_ENABLE_BIT(1));
+      STEPPER_ENABLE_PORT(2) |= (1 << STEPPER_ENABLE_BIT(2));
+    } else {
       STEPPER_ENABLE_PORT(0) &= ~(1 << STEPPER_ENABLE_BIT(0));
       STEPPER_ENABLE_PORT(1) &= ~(1 << STEPPER_ENABLE_BIT(1));
       STEPPER_ENABLE_PORT(2) &= ~(1 << STEPPER_ENABLE_BIT(2));
-    
+    }
     // Initialize stepper output bits to ensure first ISR call does not step.
     for (idx = 0; idx < N_AXIS; idx++) {
       st.step_outbits[idx] = step_port_invert_mask[idx];
@@ -609,7 +613,10 @@ void st_generate_step_dir_invert_masks()
   #ifdef DEFAULTS_RAMPS_BOARD
     for (idx=0; idx<N_AXIS; idx++) {
       if (bit_istrue(settings.step_invert_mask,bit(idx))) { step_port_invert_mask[idx] = get_step_pin_mask(idx); }
+      else { step_port_invert_mask[idx] = 0; }
+
       if (bit_istrue(settings.dir_invert_mask,bit(idx))) { dir_port_invert_mask[idx] = get_direction_pin_mask(idx); }
+      else { dir_port_invert_mask[idx] = 0; }
     }
   #else
     step_port_invert_mask = 0;
@@ -876,8 +883,8 @@ void st_prep_buffer()
         #endif // Ramps Board
 
         #ifndef ADAPTIVE_MULTI_AXIS_STEP_SMOOTHING
-          for (idx=0; idx<N_AXIS; idx++) { st_prep_block->steps[idx] = pl_block->steps[idx]; }
-          st_prep_block->step_event_count = pl_block->step_event_count;
+          for (idx=0; idx<N_AXIS; idx++) { st_prep_block->steps[idx] = (pl_block->steps[idx] << 1); }
+          st_prep_block->step_event_count = (pl_block->step_event_count << 1);
         #else
           // With AMASS enabled, simply bit-shift multiply all Bresenham data by the max AMASS
           // level, such that we never divide beyond the original data anywhere in the algorithm.
@@ -1040,15 +1047,14 @@ void st_prep_buffer()
       switch (prep.ramp_type) {
         case RAMP_DECEL_OVERRIDE:
           speed_var = pl_block->acceleration*time_var;
-          mm_var = time_var*(prep.current_speed - 0.5*speed_var);
-          mm_remaining -= mm_var;
-          if ((mm_remaining < prep.accelerate_until) || (mm_var <= 0)) {
+          if (prep.current_speed-prep.maximum_speed <= speed_var) {
             // Cruise or cruise-deceleration types only for deceleration override.
-            mm_remaining = prep.accelerate_until; // NOTE: 0.0 at EOB
+            mm_remaining = prep.accelerate_until;
             time_var = 2.0*(pl_block->millimeters-mm_remaining)/(prep.current_speed+prep.maximum_speed);
             prep.ramp_type = RAMP_CRUISE;
             prep.current_speed = prep.maximum_speed;
           } else { // Mid-deceleration override ramp.
+            mm_remaining -= time_var*(prep.current_speed - 0.5*speed_var);
             prep.current_speed -= speed_var;
           }
           break;
