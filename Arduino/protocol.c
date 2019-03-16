@@ -248,6 +248,7 @@ void protocol_exec_rt_system()
     // Execute system abort.
     if (rt_exec & EXEC_RESET) {
       sys.abort = true;  // Only place this is set true.
+      servo_stop();
       return; // Nothing else to do but exit.
     }
 
@@ -371,7 +372,11 @@ void protocol_exec_rt_system()
       }
       system_clear_exec_state_flag(EXEC_CYCLE_START);
     }
-
+      if (sys.state & (STATE_IDLE | STATE_ALARM | STATE_HOLD | STATE_SAFETY_DOOR | STATE_SLEEP)){
+        servo_stop();  
+      }else{
+        set_pen_pos();
+      }
     if (rt_exec & EXEC_CYCLE_STOP) {
       // Reinitializes the cycle plan and stepper system after a feed hold for a resume. Called by
       // realtime command execution in the main program, ensuring that the planner re-plans safely.
@@ -508,6 +513,7 @@ void protocol_exec_rt_system()
 // template
 static void protocol_exec_rt_suspend()
 {
+   servo_stop();
   #ifdef PARKING_ENABLE
     // Declare and initialize parking local variables
     float restore_target[N_AXIS];
