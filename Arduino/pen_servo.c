@@ -56,7 +56,7 @@ void initISR(){
     TIFR5 = _BV(OCF5A);     // clear any pending interrupts;
     TIMSK5 =  _BV(OCIE5A) ; // enable the output compare interrupt
 //     sei();  
- printString("INIT ISR\n");
+ // printString("INIT ISR\n");
 }
 
 long map(long x, long in_min, long in_max, long out_min, long out_max)
@@ -67,7 +67,7 @@ void finISR(){
 
     TIMSK5 &= ~_BV(OCIE5A) ; // enable the output compare interrupt
     servo._isActive = 0;
-printString("FIN ISR\n");
+// printString("FIN ISR\n");
 }
 /****************** end of static functions ******************************/
 
@@ -82,7 +82,7 @@ void servo_init(){
 
 void servo_attach(){
   if (servo._isActive == 0) {
-    printString("SERVO ATTACH\n");
+    // printString("SERVO ATTACH\n");
 
     servo.ticks = usToTicks(DEFAULT_PULSE_WIDTH);   // store default values
     pinMode(SERVO_PIN, OUTPUT);                                   // set servo pin to output
@@ -139,7 +139,7 @@ void pen_up() {
   servo_attach();
   servo_write(PEN_SERVO_UP);
   pen_pos = PEN_UP;
-  printString("SERVO UP\n");
+  // printString("SERVO UP\n");
   }
 }
 
@@ -148,7 +148,7 @@ void pen_down(){
     servo_attach();
     servo_write(PEN_SERVO_DOWN);
     pen_pos = PEN_DOWN;
-  printString("SERVO DOWN\n");
+  // printString("SERVO DOWN\n");
    }
 }
 
@@ -172,8 +172,8 @@ void set_pen_pos()
       servo_attach();
       servo_write( p);
       servoPos = p;
-      printString("servoPos: ");   
-      printInteger(p);
+      // printString("servoPos: ");   
+      // printInteger(p);
     }
     
 // if(wpos_z != sys_position[Z_AXIS]){

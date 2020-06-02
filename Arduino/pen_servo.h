@@ -1,8 +1,8 @@
 #ifndef pen_servo_h
 #define pen_servo_h
 
-#define PEN_SERVO_DOWN     60      
-#define PEN_SERVO_UP       0        
+#define PEN_SERVO_DOWN     50      
+#define PEN_SERVO_UP       10        
 
 
 
